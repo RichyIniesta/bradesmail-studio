@@ -4,73 +4,54 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>BradesMail Studio</title>
-<link rel="stylesheet" href="assets/css/app.css">
 </head>
 <body>
-<div class="app-shell">
-<aside class="app-sidebar">
-  <a class="app-brand" href="index.html" style="text-decoration:none">
-    <span style="font-size:20px;color:#fff;font-weight:800;letter-spacing:-.03em">Bradesco</span>
-    <span class="app-brand-name">Mail Studio</span>
-  </a>
-  <nav class="app-nav">
-    <div class="app-nav-label">Workspace</div>
-    <a class="active" href="index.html">⌂ &nbsp;Inicio</a>
-    <a href="correos.html" data-app-action="new-email">✦ &nbsp;Nuevo correo</a>
-    <a href="plantillas.html">▦ &nbsp;Plantillas</a>
-    <div class="app-nav-label" style="margin-top:20px">Herramientas</div>
-    <a href="correos.html">◌ &nbsp;Editor</a>
-  </nav>
-  <div class="app-sidebar-footer">Bradesco México<br><strong>BradesMail Studio</strong></div>
-</aside>
+<main>
+  <h1>BradesMail Studio</h1>
+  <p>¿Qué quieres hacer?</p>
 
-<main class="app-main">
-<header class="app-topbar">
-  <h1>Workspace</h1>
-  <div class="app-topbar-actions">
-    <a class="app-btn app-btn-secondary" href="plantillas.html">Ver plantillas</a>
-    <a class="app-btn app-btn-primary" href="correos.html" data-app-action="new-email">+ Nuevo correo</a>
-  </div>
-</header>
-
-<section class="app-content">
-  <div class="app-hero">
-    <div>
-      <div class="app-eyebrow">BradesMail Studio</div>
-      <h2>Centro de creación</h2>
-      <p>Crea, edita, previsualiza y exporta correos HTML institucionales desde un solo espacio de trabajo.</p>
-    </div>
+  <div>
+    <button type="button" id="new-email">Iniciar nuevo correo</button>
+    <button type="button" id="import-html">Importar HTML</button>
+    <input type="file" id="html-file" accept=".html,.htm,text/html" hidden>
   </div>
 
-  <div class="app-grid">
-    <a class="app-card app-card-action" href="correos.html" data-app-action="new-email">
-      <div class="app-icon">✦</div>
-      <h3>Crear correo</h3>
-      <p>Abre el editor modular y construye un comunicado con bloques de contenido.</p>
-    </a>
-    <a class="app-card app-card-action" href="plantillas.html">
-      <div class="app-icon">▦</div>
-      <h3>Plantillas</h3>
-      <p>Consulta las bases institucionales disponibles para iniciar un nuevo correo.</p>
-    </a>
-    <a class="app-card app-card-action" href="correos.html">
-      <div class="app-icon">⌁</div>
-      <h3>Editor visual</h3>
-      <p>Modifica contenido, orden, formato, imágenes y llamadas a la acción con vista previa.</p>
-    </a>
-  </div>
-
-  <section class="app-section">
-    <div class="app-section-title"><h3>Flujo de trabajo</h3></div>
-    <div class="app-list">
-      <div class="app-list-row"><div class="app-list-main"><span class="app-list-dot"></span><div><div class="app-list-title">1. Selecciona una base</div><div class="app-list-meta">Parte de una plantilla institucional.</div></div></div></div>
-      <div class="app-list-row"><div class="app-list-main"><span class="app-list-dot"></span><div><div class="app-list-title">2. Construye el contenido</div><div class="app-list-meta">Agrega y reordena módulos desde el editor.</div></div></div></div>
-      <div class="app-list-row"><div class="app-list-main"><span class="app-list-dot"></span><div><div class="app-list-title">3. Revisa y exporta</div><div class="app-list-meta">Comprueba la vista previa y descarga el HTML final.</div></div></div></div>
-    </div>
-  </section>
-</section>
+  <p id="import-status" aria-live="polite"></p>
 </main>
-</div>
-<script src="assets/js/app.js"></script>
+
+<script>
+const newEmailButton = document.getElementById('new-email');
+const importButton = document.getElementById('import-html');
+const fileInput = document.getElementById('html-file');
+const status = document.getElementById('import-status');
+
+newEmailButton.addEventListener('click', () => {
+  window.location.href = 'correos.html';
+});
+
+importButton.addEventListener('click', () => {
+  fileInput.click();
+});
+
+fileInput.addEventListener('change', async (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  if (!file.name.toLowerCase().endsWith('.html') && !file.name.toLowerCase().endsWith('.htm')) {
+    status.textContent = 'Selecciona un archivo HTML válido.';
+    return;
+  }
+
+  try {
+    const html = await file.text();
+    sessionStorage.setItem('bradesmail:imported-html', html);
+    sessionStorage.setItem('bradesmail:imported-name', file.name);
+    window.location.href = 'correos.html?mode=import';
+  } catch (error) {
+    console.error(error);
+    status.textContent = 'No fue posible importar el archivo.';
+  }
+});
+</script>
 </body>
 </html>
