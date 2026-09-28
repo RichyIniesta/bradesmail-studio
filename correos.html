@@ -20,6 +20,59 @@ select { width: 100%; padding: 10px; font-size: 14px; }
 button { padding: 10px 14px; border: 1px solid #ccc; background: #fff; cursor: pointer; font-size: 14px; }
 button.primary { background: #CC092F; border-color: #CC092F; color: #fff; }
 .preview { min-width: 0; display: flex; flex-direction: column; }
+
+/* Selector inicial de canal */
+.channel-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.45);
+}
+.channel-card {
+  width: min(520px, 100%);
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 12px 40px rgba(0,0,0,.2);
+  overflow: hidden;
+}
+.channel-image {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.channel-content { padding: 24px; }
+.channel-content h2 { margin: 0 0 8px; font-size: 22px; }
+.channel-content > p { margin: 0 0 20px; color: #666; line-height: 1.5; }
+.channel-options { display: grid; gap: 10px; }
+.channel-option {
+  width: 100%;
+  text-align: left;
+  padding: 14px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+}
+.channel-option strong { display: block; margin-bottom: 4px; }
+.channel-option span { display: block; color: #666; font-size: 13px; line-height: 1.4; }
+.channel-option.selected { border: 2px solid #CC092F; padding: 13px; }
+.channel-description {
+  margin-top: 16px;
+  padding: 14px;
+  background: #f7f7f7;
+  border-left: 4px solid #CC092F;
+  color: #555;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.channel-actions { margin-top: 20px; text-align: right; }
+.channel-actions button { min-width: 100px; }
+.editor-locked { visibility: hidden; }
+
 .preview-bar { height: 50px; background: #fff; border-bottom: 1px solid #ddd; display: flex; align-items: center; padding: 0 16px; }
 .preview-bar strong { font-size: 14px; }
 .frame-wrap { flex: 1; min-height: 0; }
@@ -32,8 +85,38 @@ iframe { width: 100%; height: 100%; border: 0; display: block; }
 </style>
 </head>
 <body>
+
+<div class="channel-overlay" id="channel-overlay">
+  <div class="channel-card" role="dialog" aria-modal="true" aria-labelledby="channel-title">
+    <img class="channel-image" id="channel-image" src="https://github.com/RichyIniesta/app-comunicacion/blob/main/bradesco-informa-plantilla-1-1.png?raw=true" alt="Bradesco Informa">
+    <div class="channel-content">
+      <h2 id="channel-title">¿Por qué canal se comunicará?</h2>
+      <p>Selecciona el canal que corresponde al comunicado.</p>
+
+      <div class="channel-options">
+        <button type="button" class="channel-option selected" data-channel="informa">
+          <strong>Bradesco Informa</strong>
+          <span>Para temas operativos, administrativos o comunicados generales.</span>
+        </button>
+        <button type="button" class="channel-option" data-channel="talento">
+          <strong>Talento</strong>
+          <span>Para temas culturales o de desarrollo de talento.</span>
+        </button>
+      </div>
+
+      <div class="channel-description" id="channel-description">
+        Bradesco Informa se utiliza para comunicar temas operativos, administrativos o información general de interés para los colaboradores.
+      </div>
+
+      <div class="channel-actions">
+        <button type="button" class="primary" id="accept-channel">Aceptar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <header><a href="index.html">BradesMail Studio</a></header>
-<main>
+<main class="editor-locked" id="editor-main">
 <section class="controls">
 <h1>Generador de correos</h1>
 <p>Selecciona el encabezado que quieres utilizar.</p>
@@ -105,6 +188,38 @@ function downloadHTML() {
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
 }
+const channelOverlay = document.getElementById("channel-overlay");
+const editorMain = document.getElementById("editor-main");
+const channelImage = document.getElementById("channel-image");
+const channelDescription = document.getElementById("channel-description");
+const channelOptions = document.querySelectorAll(".channel-option");
+const acceptChannelButton = document.getElementById("accept-channel");
+let selectedChannel = "informa";
+
+function selectChannel(channel) {
+  selectedChannel = channel;
+  document.getElementById("header-select").value = channel;
+  channelImage.src = HEADER_PRESETS[channel];
+  channelImage.alt = channel === "informa" ? "Bradesco Informa" : "Talento";
+  channelDescription.textContent = channel === "informa"
+    ? "Bradesco Informa se utiliza para comunicar temas operativos, administrativos o información general de interés para los colaboradores."
+    : "Talento se utiliza para comunicar temas culturales o de desarrollo de talento."; 
+  channelOptions.forEach(option => {
+    option.classList.toggle("selected", option.dataset.channel === channel);
+  });
+}
+
+channelOptions.forEach(option => {
+  option.addEventListener("click", () => selectChannel(option.dataset.channel));
+});
+
+acceptChannelButton.addEventListener("click", () => {
+  selectChannel(selectedChannel);
+  channelOverlay.style.display = "none";
+  editorMain.classList.remove("editor-locked");
+  updatePreview();
+});
+
 document.getElementById("header-select").addEventListener("change", updatePreview);
 document.getElementById("copy-html").addEventListener("click", copyHTML);
 document.getElementById("download-html").addEventListener("click", downloadHTML);
