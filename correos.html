@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bradesco | Generador Modular de Plantillas</title>
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bradesco-red: #CC092F;
+      --bradesco-dark-red: #9B0522;
+      --bg-gray: #F4F4F4;
+      --card-bg: #FFFFFF;
+      --text-dark: #333333;
+      --text-muted: #6E6E6E;
+      --border-color: #E0E0E0;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Open Sans', Arial, sans-serif;
+      background-color: var(--bg-gray);
+      color: var(--text-dark);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* BARRA DE NAVEGACIÓN */
+    .b-navbar {
+      background-color: var(--bradesco-red);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+      position: relative;
+      z-index: 1000;
+    }
+    .b-nav-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .b-brand { display: flex; align-items: center; text-decoration: none; color: white; }
+    .b-brand img { height: 40px; width: auto; display: block; }
+    .b-nav-menu { display: flex; list-style: none; gap: 8px; margin: 0; padding: 0; }
+    .b-nav-link {
+      display: flex; align-items: center; gap: 8px; padding: 8px 16px; color: rgba(255, 255, 255, 0.88);
+      text-decoration: none; font-size: 14px; font-weight: 600; border-radius: 6px; transition: all 0.2s ease;
+    }
+    .b-icon { width: 18px; height: 18px; }
+    .b-nav-link:hover { color: white; background-color: rgba(255, 255, 255, 0.15); }
+    .b-nav-link.active { color: var(--bradesco-red); background-color: white; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+    .b-nav-toggle {
+      display: none; flex-direction: column; justify-content: space-between;
+      width: 26px; height: 18px; background: transparent; border: none; cursor: pointer; padding: 0;
+    }
+    .b-nav-toggle span { width: 100%; height: 2px; background-color: white; border-radius: 2px; }
+
+    @media (max-width: 768px) {
+      .b-nav-toggle { display: flex; }
+      .b-nav-menu {
+        position: absolute; top: 60px; left: 0; right: 0; background-color: var(--bradesco-red);
+        flex-direction: column; padding: 15px 20px; gap: 10px; display: none; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      }
+      .b-nav-menu.open { display: flex; }
+      .b-nav-link { padding: 12px 16px; width: 100%; }
+    }
+
+    /* LAYOUT PRINCIPAL */
+    .main-container { display: flex; flex: 1; height: calc(100vh - 60px); overflow: hidden; }
+    .editor-panel { width: 48%; background: var(--card-bg); border-right: 1px solid var(--border-color); overflow-y: auto; padding: 25px; }
+    .preview-panel { width: 52%; background: #EAEAEA; display: flex; flex-direction: column; }
+    .preview-toolbar {
+      background: white; padding: 12px 25px; border-bottom: 1px solid var(--border-color);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .preview-toolbar h2 { font-size: 15px; font-weight: 700; color: var(--text-dark); }
+    .preview-actions { display: flex; gap: 10px; }
+
+    /* CONTENEDOR DE VISTA PREVIA */
+    .iframe-container {
+      flex: 1;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: stretch;
+      overflow-y: auto;
+      background-color: #F4F4F4;
+    }
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: transparent;
+      box-shadow: none;
+      border-radius: 0;
+      display: block;
+    }
+
+    /* TARJETAS DE BLOQUES & DRAG-AND-DROP */
+    .section-card {
+      background: white; border: 1px solid var(--border-color); border-radius: 8px;
+      padding: 16px; margin-bottom: 18px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+      transition: box-shadow 0.2s, border-color 0.2s;
+    }
+    .block-card { border-left: 4px solid var(--bradesco-red); }
+    .block-card.dragging { opacity: 0.45; border-color: var(--bradesco-red); }
+    .block-card.drag-over { border-top: 3px solid var(--bradesco-red); transform: scale(1.01); }
+
+    .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .section-title {
+      font-size: 14px; font-weight: 700; color: var(--bradesco-red); display: flex; align-items: center; gap: 8px;
+    }
+    .drag-handle {
+      cursor: grab; color: #94A3B8; font-size: 16px; user-select: none; display: inline-block; padding: 2px 4px;
+    }
+    .drag-handle:active { cursor: grabbing; }
+
+    .block-controls { display: flex; gap: 5px; align-items: center; }
+    .form-group { margin-bottom: 12px; }
+    .form-group:last-child { margin-bottom: 0; }
+    label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 5px; color: #4A5568; }
+
+    input[type="text"], input[type="url"], select {
+      width: 100%; padding: 8px 12px; border: 1px solid #CBD5E1; border-radius: 6px;
+      font-size: 13px; font-family: inherit; color: var(--text-dark);
+    }
+    input:focus, select:focus { outline: none; border-color: var(--bradesco-red); box-shadow: 0 0 0 2px rgba(204,9,47,0.1); }
+
+    /* EDITOR DE TEXTO ENRIQUECIDO AVANZADO */
+    .wysiwyg-toolbar {
+      display: flex; flex-wrap: wrap; gap: 4px; background: #F8FAFC; border: 1px solid #CBD5E1;
+      border-bottom: none; border-radius: 6px 6px 0 0; padding: 6px 8px; align-items: center;
+    }
+    .wysiwyg-btn {
+      background: white; border: 1px solid #CBD5E1; border-radius: 4px; padding: 4px 7px;
+      font-size: 12px; font-weight: bold; cursor: pointer; color: #475569;
+    }
+    .wysiwyg-btn:hover { background: #E2E8F0; color: #0F172A; }
+    .wysiwyg-select {
+      width: auto !important; padding: 3px 6px !important; font-size: 12px !important; height: 28px;
+      border: 1px solid #CBD5E1; border-radius: 4px; background: white; cursor: pointer;
+    }
+    .wysiwyg-editor {
+      min-height: 80px; padding: 10px 12px; border: 1px solid #CBD5E1; border-radius: 0 0 6px 6px;
+      font-size: 15px; line-height: 1.5; color: var(--text-dark); background: white; outline: none;
+    }
+    .wysiwyg-editor:focus { border-color: var(--bradesco-red); }
+    .wysiwyg-editor.title-editor { min-height: 48px; font-weight: bold; }
+    .wysiwyg-editor ul, .wysiwyg-editor ol { padding-left: 20px; }
+
+    /* CONTENEDOR DE NUEVOS BLOQUES */
+    .add-block-container {
+      background: #F8FAFC; border: 2px dashed #CBD5E1; border-radius: 8px; padding: 16px;
+      text-align: center; margin-bottom: 25px;
+    }
+    .add-block-container p { font-size: 13px; font-weight: 600; color: #64748B; margin-bottom: 10px; }
+    .add-block-buttons { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+
+    .btn-block-action {
+      background: white; border: 1px solid #CBD5E1; color: #334155; font-size: 12px;
+      font-weight: 600; padding: 7px 13px; border-radius: 6px; cursor: pointer; transition: all 0.2s;
+    }
+    .btn-block-action:hover { border-color: var(--bradesco-red); color: var(--bradesco-red); background: #FFF5F5; }
+
+    /* BOTONES */
+    .btn { padding: 9px 16px; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; }
+    .btn-primary { background-color: var(--bradesco-red); color: white; }
+    .btn-primary:hover { background-color: var(--bradesco-dark-red); }
+    .btn-secondary { background-color: #E2E8F0; color: #334155; }
+    .btn-secondary:hover { background-color: #CBD5E1; }
+    .btn-mini { padding: 3px 8px; font-size: 11px; border: 1px solid #CBD5E1; background: white; border-radius: 4px; cursor: pointer; }
+    .btn-mini-del { color: #DC2626; border-color: #FCA5A5; background: #FEF2F2; }
+    .btn-mini-del:hover { background: #FEE2E2; }
+  </style>
+</head>
+<body>
+
+  <!-- BARRA DE NAVEGACIÓN -->
+  <nav class="b-navbar">
+    <div class="b-nav-container">
+      <a href="index.html" class="b-brand">
+        <img src="Bradesco_H_White_RGB.png" alt="Bradesco Logo">
+      </a>
+
+      <button class="b-nav-toggle" id="bNavToggle" aria-label="Abrir menú">
+        <span></span><span></span><span></span>
+      </button>
+
+      <ul class="b-nav-menu" id="bNavMenu">
+        <li class="b-nav-item"><a href="index.html" class="b-nav-link" id="nav-home">Inicio</a></li>
+        <li class="b-nav-item"><a href="correos.html" class="b-nav-link active" id="nav-correos">Generador de Correos</a></li>
+        <li class="b-nav-item"><a href="script.html" class="b-nav-link" id="nav-script">Generador de Scripts</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="main-container">
+    <div class="editor-panel">
+      
+      <!-- CONTENEDOR DE BLOQUES REORDENABLES -->
+      <div id="blocks-container"></div>
+
+      <!-- BARRA DE AGREGAR BLOQUES -->
+      <div class="add-block-container">
+        <p>+ Agregar módulo al correo:</p>
+        <div class="add-block-buttons">
+          <button class="btn-block-action" onclick="addBlock('header')">🏷️ Encabezado (Header)</button>
+          <button class="btn-block-action" onclick="addBlock('title')">🔤 Título</button>
+          <button class="btn-block-action" onclick="addBlock('text')">📝 Párrafo / Texto</button>
+          <button class="btn-block-action" onclick="addBlock('destacado')">📌 Bloque Destacado</button>
+          <button class="btn-block-action" onclick="addBlock('image')">🖼️ Imagen / Banner</button>
+          <button class="btn-block-action" onclick="addBlock('button')">🔘 Botón (Enlace)</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- PANEL VISTA PREVIA -->
+    <div class="preview-panel">
+      <div class="preview-toolbar">
+        <h2>Vista Previa en Tiempo Real</h2>
+        <div class="preview-actions">
+          <button class="btn btn-secondary" onclick="copyHTML()">Copiar HTML</button>
+          <button class="btn btn-primary" onclick="downloadHTML()">Descargar HTML</button>
+        </div>
+      </div>
+      <div class="iframe-container">
+        <iframe id="preview-frame"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let rawTemplate = "";
+    let blockCount = 0;
+
+    const HEADER_PRESETS = {
+      informa: "https://github.com/RichyIniesta/app-comunicacion/blob/main/bradesco-informa-plantilla-1-1.png?raw=true",
+      talento: "https://github.com/RichyIniesta/app-comunicacion/blob/2c748b4cb507990cbb4631dc37b53963b1576bd2/bradesco-informa-plantilla-1-2.png?raw=true"
+    };
+
+    // Toggle móvil
+    document.getElementById('bNavToggle')?.addEventListener('click', function() {
+      document.getElementById('bNavMenu')?.classList.toggle('open');
+    });
+
+    async function loadTemplate() {
+      try {
+        const response = await fetch('plantilla.html');
+        if (!response.ok) throw new Error();
+        rawTemplate = await response.text();
+        updatePreview();
+      } catch (err) {
+        console.error(err);
+        alert("Recuerda abrir la app a través de un servidor web local (Live Server o GitHub Pages) para cargar la plantilla externa.");
+      }
+    }
+
+    // BARRA DE FORMATO CON COLOR Y TAMAÑO
+    function getToolbarHTML(editorId) {
+      return `
+        <div class="wysiwyg-toolbar">
+          <button type="button" class="wysiwyg-btn" onclick="execFormat('${editorId}', 'bold')"><b>B</b></button>
+          <button type="button" class="wysiwyg-btn" onclick="execFormat('${editorId}', 'italic')"><i>I</i></button>
+          
+          <select class="wysiwyg-select" onchange="applyColor('${editorId}', this.value); this.selectedIndex=0;">
+            <option value="" disabled selected>🎨 Color</option>
+            <option value="#CC092F" style="color:#CC092F; font-weight:bold;">Rojo Bradesco</option>
+            <option value="#333333" style="color:#333333; font-weight:bold;">Negro Texto</option>
+            <option value="#6E6E6E" style="color:#6E6E6E; font-weight:bold;">Gris Secundario</option>
+          </select>
+
+          <select class="wysiwyg-select" onchange="applyFontSize('${editorId}', this.value); this.selectedIndex=0;">
+            <option value="" disabled selected>📏 Tamaño</option>
+            <option value="13px">13px (Pequeño)</option>
+            <option value="16px">16px (Normal)</option>
+            <option value="20px">20px (Mediano)</option>
+            <option value="24px">24px (Grande)</option>
+            <option value="30px">30px (Título)</option>
+          </select>
+
+          <button type="button" class="wysiwyg-btn" onclick="execFormat('${editorId}', 'justifyLeft')">Izq</button>
+          <button type="button" class="wysiwyg-btn" onclick="execFormat('${editorId}', 'justifyCenter')">Cent</button>
+          <button type="button" class="wysiwyg-btn" onclick="execFormat('${editorId}', 'justifyRight')">Der</button>
+          <button type="button" class="wysiwyg-btn" onclick="execFormat('${editorId}', 'justifyFull')">Just</button>
+          <button type="button" class="wysiwyg-btn" onclick="execFormat('${editorId}', 'insertUnorderedList')">• Lista</button>
+        </div>
+      `;
+    }
+
+    function addBlock(type, initialData = {}) {
+      blockCount++;
+      const id = `block-${blockCount}`;
+      const container = document.getElementById('blocks-container');
+      const card = document.createElement('div');
+      card.className = 'section-card block-card';
+      card.id = id;
+      card.dataset.type = type;
+      card.draggable = true;
+
+      card.addEventListener('dragstart', handleDragStart);
+      card.addEventListener('dragover', handleDragOver);
+      card.addEventListener('dragleave', handleDragLeave);
+      card.addEventListener('drop', handleDrop);
+      card.addEventListener('dragend', handleDragEnd);
+
+      let titleLabel = "";
+      let innerHTML = "";
+
+      if (type === 'header') {
+        titleLabel = "Encabezado (Header)";
+        innerHTML = `
+          <div class="form-group">
+            <label>Tipo de Encabezado:</label>
+            <select class="header-mode-select" onchange="toggleHeaderInputs('${id}', this.value)">
+              <option value="informa" selected>Bradesco Informa (Oficial)</option>
+              <option value="talento">Talento (Oficial)</option>
+              <option value="custom">URL de Imagen Personalizada</option>
+            </select>
+          </div>
+          <div class="form-group header-custom-group" style="display: none;">
+            <label>URL del Banner:</label>
+            <input type="url" class="header-custom-url" placeholder="https://ejemplo.com/banner.png" oninput="updatePreview()">
+          </div>
+        `;
+      } 
+      else if (type === 'title') {
+        titleLabel = "Título del Comunicado";
+        const editorId = `${id}-title-editor`;
+        innerHTML = `
+          <div class="form-group">
+            ${getToolbarHTML(editorId)}
+            <div id="${editorId}" class="wysiwyg-editor title-editor" contenteditable="true" oninput="updatePreview()">
+              <span style="color: #CC092F; font-size: 30px; font-weight: bold;">${initialData.text || 'Aviso Importante Bradesco'}</span>
+            </div>
+          </div>
+        `;
+      } 
+      else if (type === 'text') {
+        titleLabel = "Párrafo / Cuerpo de Texto";
+        const editorId = `${id}-text-editor`;
+        innerHTML = `
+          <div class="form-group">
+            ${getToolbarHTML(editorId)}
+            <div id="${editorId}" class="wysiwyg-editor" contenteditable="true" oninput="updatePreview()">
+              ${initialData.text || '<span style="color: #6E6E6E; font-size: 16px;">Escribe tu contenido aquí...</span>'}
+            </div>
+          </div>
+        `;
+      } 
+      else if (type === 'destacado') {
+        titleLabel = "Bloque Destacado";
+        const titleEdId = `${id}-dest-title-ed`;
+        const textEdId = `${id}-dest-text-ed`;
+        innerHTML = `
+          <div class="form-group">
+            <label>Título del Bloque:</label>
+            ${getToolbarHTML(titleEdId)}
+            <div id="${titleEdId}" class="wysiwyg-editor" style="min-height: 40px;" contenteditable="true" oninput="updatePreview()">
+              <strong style="color: #CC092F; font-size: 18px;">¡Atención Especial!</strong>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Mensaje Destacado:</label>
+            ${getToolbarHTML(textEdId)}
+            <div id="${textEdId}" class="wysiwyg-editor" contenteditable="true" oninput="updatePreview()">
+              <span style="color: #6E6E6E; font-size: 15px;">Mensaje clave que deseas resaltar dentro del cuadro gris...</span>
+            </div>
+          </div>
+        `;
+      } 
+      else if (type === 'image') {
+        titleLabel = "Imagen / Banner";
+        innerHTML = `
+          <div class="form-group">
+            <label>URL de la Imagen:</label>
+            <input type="url" class="img-url" placeholder="https://ejemplo.com/imagen.jpg" value="${initialData.url || ''}" oninput="updatePreview()">
+          </div>
+        `;
+      } 
+      else if (type === 'button') {
+        titleLabel = "Botón Call-to-Action";
+        innerHTML = `
+          <div class="form-group">
+            <label>Texto del Botón:</label>
+            <input type="text" class="btn-text" value="${initialData.text || 'MÁS INFORMACIÓN'}" oninput="updatePreview()">
+          </div>
+          <div class="form-group">
+            <label>Enlace (URL) de destino:</label>
+            <input type="url" class="btn-url" value="${initialData.url || 'https://www.bradesco.com.mx'}" oninput="updatePreview()">
+          </div>
+        `;
+      }
+
+      card.innerHTML = `
+        <div class="section-header">
+          <span class="section-title">
+            <span class="drag-handle" title="Arrastra para reordenar">☰</span>
+            ${titleLabel}
+          </span>
+          <div class="block-controls">
+            <button type="button" class="btn-mini" onclick="moveBlock('${id}', -1)" title="Subir">↑</button>
+            <button type="button" class="btn-mini" onclick="moveBlock('${id}', 1)" title="Bajar">↓</button>
+            <button type="button" class="btn-mini btn-mini-del" onclick="deleteBlock('${id}')" title="Eliminar">✕</button>
+          </div>
+        </div>
+        ${innerHTML}
+      `;
+
+      container.appendChild(card);
+      updatePreview();
+    }
+
+    function toggleHeaderInputs(blockId, mode) {
+      const block = document.getElementById(blockId);
+      const customGroup = block.querySelector('.header-custom-group');
+      if (mode === 'custom') {
+        customGroup.style.display = 'block';
+      } else {
+        customGroup.style.display = 'none';
+      }
+      updatePreview();
+    }
+
+    function execFormat(editorId, command) {
+      const editor = document.getElementById(editorId);
+      editor.focus();
+      document.execCommand(command, false, null);
+      updatePreview();
+    }
+
+    function applyColor(editorId, colorHex) {
+      const editor = document.getElementById(editorId);
+      editor.focus();
+      document.execCommand('styleWithCSS', false, true);
+      document.execCommand('foreColor', false, colorHex);
+      updatePreview();
+    }
+
+    function applyFontSize(editorId, sizePixel) {
+      const editor = document.getElementById(editorId);
+      editor.focus();
+      const selection = window.getSelection();
+      if (!selection.rangeCount) return;
+      const range = selection.getRangeAt(0);
+      
+      const span = document.createElement("span");
+      span.style.fontSize = sizePixel;
+      
+      try {
+        range.surroundContents(span);
+      } catch (e) {
+        document.execCommand('fontSize', false, "3");
+      }
+      updatePreview();
+    }
+
+    function moveBlock(id, direction) {
+      const card = document.getElementById(id);
+      if (!card) return;
+      if (direction === -1 && card.previousElementSibling) {
+        card.parentNode.insertBefore(card, card.previousElementSibling);
+      } else if (direction === 1 && card.nextElementSibling) {
+        card.parentNode.insertBefore(card, card.nextElementSibling);
+      }
+      updatePreview();
+    }
+
+    function deleteBlock(id) {
+      document.getElementById(id)?.remove();
+      updatePreview();
+    }
+
+    let draggedItem = null;
+
+    function handleDragStart(e) {
+      draggedItem = this;
+      this.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    }
+
+    function handleDragOver(e) {
+      e.preventDefault();
+      if (this === draggedItem) return;
+      this.classList.add('drag-over');
+    }
+
+    function handleDragLeave() {
+      this.classList.remove('drag-over');
+    }
+
+    function handleDrop(e) {
+      e.preventDefault();
+      this.classList.remove('drag-over');
+      if (this !== draggedItem) {
+        const container = document.getElementById('blocks-container');
+        const allCards = Array.from(container.querySelectorAll('.block-card'));
+        const draggedIndex = allCards.indexOf(draggedItem);
+        const targetIndex = allCards.indexOf(this);
+
+        if (draggedIndex < targetIndex) {
+          this.after(draggedItem);
+        } else {
+          this.before(draggedItem);
+        }
+        updatePreview();
+      }
+    }
+
+    function handleDragEnd() {
+      this.classList.remove('dragging');
+      document.querySelectorAll('.block-card').forEach(c => c.classList.remove('drag-over'));
+    }
+
+    // CONSTRUCCIÓN DEL CORREO CON PROFUNDIDAD Y SOMBRAS FLOTANTES
+    function buildHTML() {
+      if (!rawTemplate) return "";
+      let output = rawTemplate;
+      let blocksHTML = "";
+
+      const blocks = document.querySelectorAll('#blocks-container .block-card');
+
+      blocks.forEach(block => {
+        const type = block.dataset.type;
+
+        if (type === 'header') {
+          const mode = block.querySelector('.header-mode-select').value;
+          let imgUrl = "";
+          if (mode === 'informa') imgUrl = HEADER_PRESETS.informa;
+          else if (mode === 'talento') imgUrl = HEADER_PRESETS.talento;
+          else imgUrl = block.querySelector('.header-custom-url').value || HEADER_PRESETS.informa;
+
+          blocksHTML += `\n<!-- 01_HEADER -->\n<tr>\n<td align="center" width="600" style="margin: 0; padding: 0; line-height: 0;">\n<img src="${imgUrl}" style="display: block; width: 100%; max-width: 600px; height: auto; border: 0;" width="600" alt="Header">\n</td>\n</tr>\n`;
+        }
+        else if (type === 'title') {
+          const editor = block.querySelector('.title-editor');
+          blocksHTML += `\n<!-- 02_TITULO -->\n<tr>\n<td style="padding: 35px 45px 20px 45px; font-family: Arial, Helvetica, sans-serif; text-align: center;">\n${editor.innerHTML}\n</td>\n</tr>\n`;
+        }
+        else if (type === 'text') {
+          const editor = block.querySelector('.wysiwyg-editor');
+          blocksHTML += `\n<!-- 03_TEXTO -->\n<tr>\n<td style="padding: 10px 45px 20px 45px; font-family: Arial, Helvetica, sans-serif; line-height: 26px;">\n${editor.innerHTML}\n</td>\n</tr>\n`;
+        }
+        else if (type === 'destacado') {
+          const titleEd = block.querySelectorAll('.wysiwyg-editor')[0];
+          const textEd = block.querySelectorAll('.wysiwyg-editor')[1];
+          // Sombra ligera flotante en el cuadro destacado
+          blocksHTML += `\n<!-- 04_BLOQUE_DESTACADO -->\n<tr>\n<td style="padding: 10px 45px 25px 45px;" align="center">\n<table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background-color: #F8F8F8; border-top: 5px solid #CC092F; width: 100%; border-radius: 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border: 1px solid #ECECEC; border-top: 5px solid #CC092F;">\n<tr>\n<td style="padding: 22px; font-family: Arial, Helvetica, sans-serif; text-align: center;" align="center">\n${titleEd.innerHTML}\n<div style="margin-top: 10px; line-height: 24px;">\n${textEd.innerHTML}\n</div>\n</td>\n</tr>\n</table>\n</td>\n</tr>\n`;
+        }
+        else if (type === 'image') {
+          const url = block.querySelector('.img-url').value;
+          if (url.trim() !== '') {
+            blocksHTML += `\n<!-- 05_IMAGEN -->\n<tr>\n<td align="center" width="600" style="padding: 10px 45px 25px 45px;">\n<img src="${url}" alt="" width="510" style="display: block; width: 100%; max-width: 510px; height: auto; margin: 0 auto; border-radius: 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.06);">\n</td>\n</tr>\n`;
+          }
+        }
+        else if (type === 'button') {
+          const text = block.querySelector('.btn-text').value;
+          const url = block.querySelector('.btn-url').value;
+          // Sombra ligera flotante en el botón
+          blocksHTML += `\n<!-- 06_BOTON -->\n<tr>\n<td style="padding: 10px 45px 30px 45px;" align="center">\n<table border="0" cellspacing="0" cellpadding="0" role="presentation" align="center">\n<tr>\n<td align="center" bgcolor="#CC092F" style="border-radius: 4px; background-color: #CC092F; box-shadow: 0 4px 10px rgba(204,9,47,0.22);">\n<a href="${url}" target="_blank" style="font-size: 16px; font-family: Arial, Helvetica, sans-serif; color: #FFFFFF; text-decoration: none; border-radius: 4px; padding: 14px 30px; border: 1px solid #CC092F; display: inline-block; font-weight: bold; min-width: 200px;">${text}</a>\n</td>\n</tr>\n</table>\n</td>\n</tr>\n`;
+        }
+      });
+
+      output = output.replace('{{BLOQUES_CONTENIDO}}', blocksHTML);
+      return output;
+    }
+
+    function updatePreview() {
+      const html = buildHTML();
+      const iframe = document.getElementById('preview-frame');
+      const doc = iframe.contentDocument || iframe.contentWindow.document;
+      doc.open();
+      doc.write(html);
+      doc.close();
+    }
+
+    function copyHTML() {
+      const html = buildHTML();
+      navigator.clipboard.writeText(html).then(() => alert('¡Código HTML copiado al portapapeles!'))
+        .catch(err => console.error('Error al copiar: ', err));
+    }
+
+    function downloadHTML() {
+      const html = buildHTML();
+      const blob = new Blob([html], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'correo-bradesco.html';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    window.onload = function() {
+      loadTemplate();
+      addBlock('header');
+      addBlock('title', { text: 'Aviso Importante Bradesco' });
+      addBlock('text', { text: '<span style="color: #6E6E6E; font-size: 16px;">Estimado equipo, compartimos el siguiente comunicado oficial...</span>' });
+    };
+  </script>
+</body>
+</html>
