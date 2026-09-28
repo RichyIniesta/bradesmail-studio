@@ -4,11 +4,73 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>BradesMail Studio</title>
-<style>
-*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f4f4f4;color:#333;display:grid;place-items:center;min-height:100vh}
-.card{background:#fff;padding:40px;max-width:680px;text-align:center;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.08)}
-h1{color:#cc092f;margin:0 0 12px}p{color:#666;line-height:1.6}.btn{display:inline-block;background:#cc092f;color:#fff;text-decoration:none;padding:13px 22px;border-radius:6px;font-weight:700;margin-top:12px}
-</style>
+<link rel="stylesheet" href="assets/css/app.css">
 </head>
-<body><main class="card"><h1>BradesMail Studio</h1><p>Editor visual para crear y previsualizar correos HTML.</p><a class="btn" href="correos.html">Abrir generador de correos</a></main></body>
+<body>
+<div class="app-shell">
+<aside class="app-sidebar">
+  <a class="app-brand" href="index.html" style="text-decoration:none">
+    <span style="font-size:20px;color:#fff;font-weight:800;letter-spacing:-.03em">Bradesco</span>
+    <span class="app-brand-name">Mail Studio</span>
+  </a>
+  <nav class="app-nav">
+    <div class="app-nav-label">Workspace</div>
+    <a class="active" href="index.html">⌂ &nbsp;Inicio</a>
+    <a href="correos.html" data-app-action="new-email">✦ &nbsp;Nuevo correo</a>
+    <a href="plantillas.html">▦ &nbsp;Plantillas</a>
+    <div class="app-nav-label" style="margin-top:20px">Herramientas</div>
+    <a href="correos.html">◌ &nbsp;Editor</a>
+  </nav>
+  <div class="app-sidebar-footer">Bradesco México<br><strong>BradesMail Studio</strong></div>
+</aside>
+
+<main class="app-main">
+<header class="app-topbar">
+  <h1>Workspace</h1>
+  <div class="app-topbar-actions">
+    <a class="app-btn app-btn-secondary" href="plantillas.html">Ver plantillas</a>
+    <a class="app-btn app-btn-primary" href="correos.html" data-app-action="new-email">+ Nuevo correo</a>
+  </div>
+</header>
+
+<section class="app-content">
+  <div class="app-hero">
+    <div>
+      <div class="app-eyebrow">BradesMail Studio</div>
+      <h2>Centro de creación</h2>
+      <p>Crea, edita, previsualiza y exporta correos HTML institucionales desde un solo espacio de trabajo.</p>
+    </div>
+  </div>
+
+  <div class="app-grid">
+    <a class="app-card app-card-action" href="correos.html" data-app-action="new-email">
+      <div class="app-icon">✦</div>
+      <h3>Crear correo</h3>
+      <p>Abre el editor modular y construye un comunicado con bloques de contenido.</p>
+    </a>
+    <a class="app-card app-card-action" href="plantillas.html">
+      <div class="app-icon">▦</div>
+      <h3>Plantillas</h3>
+      <p>Consulta las bases institucionales disponibles para iniciar un nuevo correo.</p>
+    </a>
+    <a class="app-card app-card-action" href="correos.html">
+      <div class="app-icon">⌁</div>
+      <h3>Editor visual</h3>
+      <p>Modifica contenido, orden, formato, imágenes y llamadas a la acción con vista previa.</p>
+    </a>
+  </div>
+
+  <section class="app-section">
+    <div class="app-section-title"><h3>Flujo de trabajo</h3></div>
+    <div class="app-list">
+      <div class="app-list-row"><div class="app-list-main"><span class="app-list-dot"></span><div><div class="app-list-title">1. Selecciona una base</div><div class="app-list-meta">Parte de una plantilla institucional.</div></div></div></div>
+      <div class="app-list-row"><div class="app-list-main"><span class="app-list-dot"></span><div><div class="app-list-title">2. Construye el contenido</div><div class="app-list-meta">Agrega y reordena módulos desde el editor.</div></div></div></div>
+      <div class="app-list-row"><div class="app-list-main"><span class="app-list-dot"></span><div><div class="app-list-title">3. Revisa y exporta</div><div class="app-list-meta">Comprueba la vista previa y descarga el HTML final.</div></div></div></div>
+    </div>
+  </section>
+</section>
+</main>
+</div>
+<script src="assets/js/app.js"></script>
+</body>
 </html>
